@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Annuler la réservation #{{ reservation.id }} - Gestion Hôtelière{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-times-circle"></i> Annulation de réservation</h1>
+    <p class="text-muted">Confirmer l'annulation de la réservation #{{ reservation.id }}</p>
+</div>
+
+<!-- Alerte d'avertissement -->
+<div class="alert alert-danger">
+    <h5><i class="fas fa-exclamation-triangle"></i> Attention !</h5>
+    <p class="mb-0">Vous êtes sur le point d'annuler cette réservation. Cette action est irréversible.</p>
+    {% if reservation.sejour %}
+    <p class="mb-0 mt-2"><strong>⚠️ Le séjour en cours sera également supprimé et les paiements seront remboursés !</strong></p>
+    {% endif %}
+</div>
+
+<!-- Informations de la réservation -->
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <i class="fas fa-info-circle"></i> Informations de la réservation
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Client :</strong> {{ reservation.client.nom_complet }}</p>
+                <p><strong>Téléphone :</strong> {{ reservation.client.telephone }}</p>
+                <p><strong>Email :</strong> {{ reservation.client.email }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Chambre :</strong> {{ reservation.chambre.numero_chambre }} ({{ reservation.chambre.get_type_chambre_display }})</p>
+                <p><strong>Arrivée :</strong> {{ reservation.date_debut_sejour|date:"d/m/Y" }}</p>
+                <p><strong>Départ :</strong> {{ reservation.date_fin_sejour|date:"d/m/Y" }}</p>
+                <p><strong>Prix total :</strong> {{ reservation.prix_total|floatformat:0 }} GNF</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Formulaire d'annulation -->
+<div class="card mb-4">
+    <div class="card-header bg-warning text-dark">
+        <i class="fas fa-comment"></i> Motif d'annulation
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label for="motif_annulation" class="form-label">Motif d'annulation <span class="text-danger">*</span></label>
+                <select class="form-control" id="motif_annulation" name="motif_annulation" required>
+                    <option value="">-- Sélectionnez un motif --</option>
+                    <option value="Demande du client">Demande du client</option>
+                    <option value="Problème de paiement">Problème de paiement</option>
+                    <option value="Erreur de réservation">Erreur de réservation</option>
+                    <option value="Force majeure">Force majeure</option>
+                    <option value="Chambre non disponible">Chambre non disponible</option>
+                    <option value="Autre">Autre</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="commentaire_annulation" class="form-label">Commentaire / Détails</label>
+                <textarea class="form-control" id="commentaire_annulation" name="commentaire_annulation" rows="4" 
+                          placeholder="Ajoutez des détails supplémentaires sur l'annulation..."></textarea>
+                <small class="text-muted">Ce commentaire sera enregistré dans l'historique de la réservation.</small>
+            </div>
+            
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{% url 'reservation_list' %}" class="btn btn-secondary btn-lg">
+                    <i class="fas fa-arrow-left"></i> Retour
+                </a>
+                <button type="submit" class="btn btn-danger btn-lg">
+                    <i class="fas fa-times-circle"></i> Confirmer l'annulation
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

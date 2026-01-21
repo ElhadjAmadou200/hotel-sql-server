@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}Enregistrer un paiement - Gestion Hôtelière{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-money-bill-wave"></i> Enregistrer un paiement</h1>
+    <p class="text-muted">Encaisser un paiement client</p>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post" id="paiement-form">
+            {% csrf_token %}
+            
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <label for="sejour" class="form-label">Séjour (Client) *</label>
+                    <select class="form-select" id="sejour" name="sejour" required>
+                        <option value="">-- Sélectionnez un séjour --</option>
+                        {% for sejour in sejours %}
+                        <option value="{{ sejour.id }}" data-prix="{{ sejour.reservation.prix_total }}">
+                            {{ sejour.reservation.client.nom_complet }} - Chambre {{ sejour.reservation.chambre.numero_chambre }} - {{ sejour.reservation.prix_total|floatformat:0 }} GNF
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <small class="text-muted">Sélectionnez le séjour pour lequel le client paie</small>
+                </div>
+            </div>
+            
+            <!-- Affichage du montant à payer -->
+            <div class="alert alert-warning mb-3" id="montant-info" style="display: none;">
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong><i class="fas fa-info-circle"></i> Montant total du séjour : </strong>
+                        <span id="montant_sejour" style="font-size: 1.3em; color: #667eea;">0</span> GNF
+                    </div>
+                    <div class="col-md-6">
+                        <strong><i class="fas fa-exclamation-triangle"></i> Le client doit payer 100% à l'arrivée</strong>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="montant" class="form-label">Montant à encaisser (GNF) *</label>
+                    <input type="number" class="form-control" id="montant" name="montant" step="0.01" min="0" required readonly>
+                    <small class="text-muted">Montant automatiquement rempli = 100% du séjour</small>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="mode_paiement" class="form-label">Mode de paiement *</label>
+                    <select class="form-select" id="mode_paiement" name="mode_paiement" required>
+                        <option value="">-- Choisissez le mode --</option>
+                        <option value="ESPECES">Espèces</option>
+                        <option value="CARTE">Carte bancaire</option>
+                        <option value="VIREMENT">Virement</option>
+                        <option value="MOBILE">Mobile Money</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="statut" class="form-label">Statut *</label>
+                    <select class="form-select" id="statut" name="statut" required>
+                        <option value="VALIDE" selected>Validé</option>
+                        <option value="EN_ATTENTE">En attente</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="reference_transaction" class="form-label">Référence transaction</label>
+                    <input type="text" class="form-control" id="reference_transaction" name="reference_transaction" placeholder="Généré automatiquement si vide">
+                    <small class="text-muted">Laissez vide pour générer automatiquement</small>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Annuler
+                </a>
+                <button type="submit" class="btn btn-danger btn-lg">
+                    <i class="fas fa-save"></i> Enregistrer le paiement
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Remplir automatiquement le montant
+document.addEventListener('DOMContentLoaded', function() {
+    const sejourSelect = document.getElementById('sejour');
+    const montantInput = document.getElementById('montant');
+    const montantSejourSpan = document.getElementById('montant_sejour');
+    const montantInfo = document.getElementById('montant-info');
+    
+    sejourSelect.addEventListener('change', function() {
+        const selectedOption = sejourSelect.options[sejourSelect.selectedIndex];
+        const prixTotal = selectedOption.getAttribute('data-prix');
+        
+        if (prixTotal) {
+            montantInput.value = prixTotal;
+            montantSejourSpan.textContent = parseFloat(prixTotal).toLocaleString('fr-FR');
+            montantInfo.style.display = 'block';
+        } else {
+            montantInput.value = '';
+            montantInfo.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}

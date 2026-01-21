@@ -1,0 +1,341 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gestion Hôtelière{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #38ef7d;
+            --danger-color: #f5576c;
+            --warning-color: #feca57;
+            --info-color: #00d2ff;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .header-logo i {
+            margin-right: 10px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-info .user-name {
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .btn-logout {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .btn-logout:hover {
+            background: #e63946;
+            transform: translateY(-2px);
+            color: white;
+        }
+        
+        /* Navigation */
+        .navbar {
+            background: white;
+            padding: 0;
+            margin: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            overflow: hidden;
+        }
+        
+        .navbar a {
+            flex: 1;
+            padding: 15px 20px;
+            text-align: center;
+            text-decoration: none;
+            color: #666;
+            border-right: 1px solid #eee;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .navbar a:last-child {
+            border-right: none;
+        }
+        
+        .navbar a:hover {
+            background: #f8f9fa;
+            color: var(--primary-color);
+        }
+        
+        .navbar a.active {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+        }
+        
+        .navbar a i {
+            margin-right: 8px;
+        }
+        
+        /* Container */
+        .container-main {
+            background: white;
+            margin: 20px;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            min-height: calc(100vh - 200px);
+        }
+        
+        /* Page Header */
+        .page-header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid var(--primary-color);
+        }
+        
+        .page-header h1 {
+            color: var(--primary-color);
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .page-header h1 i {
+            margin-right: 15px;
+        }
+        
+        /* Cards */
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            font-weight: bold;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 15px 20px;
+        }
+        
+        /* Stat Cards */
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card .icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 36px;
+        }
+        
+        .stat-card h3 {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 15px 0;
+            color: #333;
+        }
+        
+        .stat-card p {
+            color: #666;
+            font-size: 16px;
+            margin: 0;
+        }
+        
+        /* Buttons */
+        .btn {
+            border-radius: 8px;
+            padding: 10px 25px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-action {
+            margin: 0 5px;
+        }
+        
+        /* Tables */
+        .table {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .table thead {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+        }
+        
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        /* Badges */
+        .badge {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+        
+        /* Alerts */
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-logo">
+            <i class="fas fa-hotel"></i>
+            Gestion Hôtelière
+        </div>
+        {% if user.is_authenticated %}
+        <div class="user-info">
+            <span class="user-name">
+                <i class="fas fa-user-circle"></i> {{ user.username }}
+            </span>
+            <a href="{% url 'logout' %}" class="btn-logout">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if user.is_authenticated %}
+    <!-- Menu de navigation -->
+    <nav class="navbar">
+        <a href="{% url 'dashboard' %}" class="{% if request.path == '/dashboard/' %}active{% endif %}">
+            <i class="fas fa-tachometer-alt"></i> Tableau de bord
+        </a>
+        
+        {% if perms.gestion.view_client %}
+        <a href="{% url 'client_list' %}" class="{% if 'clients' in request.path %}active{% endif %}">
+            <i class="fas fa-users"></i> Clients
+        </a>
+        {% endif %}
+        
+        {% if perms.gestion.view_chambre %}
+        <a href="{% url 'chambre_list' %}" class="{% if 'chambres' in request.path %}active{% endif %}">
+            <i class="fas fa-bed"></i> Chambres
+        </a>
+        {% endif %}
+        
+        {% if perms.gestion.view_reservation %}
+        <a href="{% url 'reservation_list' %}" class="{% if 'reservations' in request.path %}active{% endif %}">
+            <i class="fas fa-calendar-check"></i> Réservations
+        </a>
+        {% endif %}
+        
+        <!-- Séjours : Accessible aux réceptionnistes ET aux admins -->
+        {% if perms.gestion.view_sejour %}
+        <a href="{% url 'sejour_list' %}" class="{% if 'sejours' in request.path %}active{% endif %}">
+            <i class="fas fa-door-open"></i> Séjours
+        </a>
+        {% endif %}
+        
+        {% if perms.gestion.add_paiement %}
+        <a href="{% url 'paiement_create' %}" class="{% if 'paiement_create' in request.path %}active{% endif %}">
+            <i class="fas fa-money-bill-wave"></i> Paiements
+        </a>
+        {% endif %}
+        
+        <!-- Sections réservées aux admins uniquement -->
+        {% if user.is_superuser %}
+        <a href="{% url 'paiement_list' %}" class="{% if 'paiement' in request.path and 'create' not in request.path %}active{% endif %}">
+            <i class="fas fa-list"></i> Liste Paiements
+        </a>
+        <a href="{% url 'rapports' %}" class="{% if 'rapports' in request.path %}active{% endif %}">
+            <i class="fas fa-chart-bar"></i> Rapports
+        </a>
+        {% endif %}
+    </nav>
+    {% endif %}
+    
+    <!-- Main Content -->
+    <div class="container-main">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

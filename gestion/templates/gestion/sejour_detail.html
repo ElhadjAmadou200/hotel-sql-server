@@ -1,0 +1,320 @@
+{% extends 'base.html' %}
+
+{% block title %}Détails du séjour #{{ sejour.id }} - Gestion Hôtelière{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="fas fa-door-open"></i> Séjour #{{ sejour.id }}</h1>
+            <p class="text-muted">Détails du séjour</p>
+        </div>
+        <div>
+            {% if not sejour.date_checkout %}
+                <a href="{% url 'sejour_checkout' sejour.id %}" class="btn btn-danger btn-lg">
+                    <i class="fas fa-sign-out-alt"></i> Effectuer le Check-out
+                </a>
+            {% endif %}
+            <a href="{% url 'sejour_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Statut du séjour -->
+<div class="alert {% if sejour.date_checkout %}alert-secondary{% else %}alert-success{% endif %} mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h5>
+                {% if sejour.date_checkout %}
+                    <i class="fas fa-check-circle"></i> Séjour terminé
+                {% else %}
+                    <i class="fas fa-door-open"></i> Séjour en cours
+                {% endif %}
+            </h5>
+            <p class="mb-0">
+                Check-in effectué le {{ sejour.date_checkin|date:"d/m/Y à H:i" }}
+                {% if sejour.date_checkout %}
+                    - Check-out effectué le {{ sejour.date_checkout|date:"d/m/Y à H:i" }}
+                {% endif %}
+            </p>
+        </div>
+        <div class="col-md-4 text-end">
+            {% if not sejour.date_checkout %}
+                <a href="{% url 'paiement_create' %}" class="btn btn-warning">
+                    <i class="fas fa-money-bill-wave"></i> Ajouter un paiement
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Informations client -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-user"></i> Informations du client
+            </div>
+            <div class="card-body">
+                <p><strong>Nom complet :</strong> {{ sejour.reservation.client.nom_complet }}</p>
+                <p><strong>Email :</strong> {{ sejour.reservation.client.email }}</p>
+                <p><strong>Téléphone :</strong> {{ sejour.reservation.client.telephone }}</p>
+                <p class="mb-0"><strong>Ville :</strong> {{ sejour.reservation.client.ville }}, {{ sejour.reservation.client.pays }}</p>
+                <hr>
+                <a href="{% url 'client_detail' sejour.reservation.client.id %}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-eye"></i> Voir le profil complet
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Informations chambre -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <i class="fas fa-bed"></i> Informations de la chambre
+            </div>
+            <div class="card-body">
+                <p><strong>Numéro :</strong> {{ sejour.reservation.chambre.numero_chambre }}</p>
+                <p><strong>Type :</strong> {{ sejour.reservation.chambre.get_type_chambre_display }}</p>
+                <p><strong>Prix par nuit :</strong> {{ sejour.reservation.chambre.prix_nuit|floatformat:0 }} GNF</p>
+                <p><strong>Étage :</strong> {{ sejour.reservation.chambre.etage }}</p>
+                <p class="mb-0">
+                    <strong>Statut actuel :</strong> 
+                    {% if sejour.date_checkout %}
+                        <span class="badge bg-success">Disponible</span>
+                    {% else %}
+                        <span class="badge bg-danger">Occupée</span>
+                    {% endif %}
+                </p>
+                <hr>
+                <a href="{% url 'chambre_detail' sejour.reservation.chambre.id %}" class="btn btn-sm btn-success">
+                    <i class="fas fa-eye"></i> Voir les détails
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Détails du séjour -->
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <i class="fas fa-calendar-alt"></i> Détails du séjour
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <p><strong>Date d'arrivée effective :</strong></p>
+                <p class="text-muted">{{ sejour.date_arrivee_effective|date:"d/m/Y à H:i" }}</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>Date de check-in :</strong></p>
+                <p class="text-muted">{{ sejour.date_checkin|date:"d/m/Y à H:i" }}</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>Nombre de personnes :</strong></p>
+                <p><span class="badge bg-info" style="font-size: 1.1em;">{{ sejour.nombre_personnes }}</span></p>
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col-md-4">
+                <p><strong>Départ prévu :</strong></p>
+                <p class="text-muted">{{ sejour.reservation.date_fin_sejour|date:"d/m/Y" }}</p>
+            </div>
+            {% if sejour.date_depart_effective %}
+            <div class="col-md-4">
+                <p><strong>Départ effectif :</strong></p>
+                <p class="text-muted">{{ sejour.date_depart_effective|date:"d/m/Y à H:i" }}</p>
+            </div>
+            {% endif %}
+            {% if sejour.date_checkout %}
+            <div class="col-md-4">
+                <p><strong>Date de check-out :</strong></p>
+                <p class="text-muted">{{ sejour.date_checkout|date:"d/m/Y à H:i" }}</p>
+            </div>
+            {% endif %}
+        </div>
+        {% if sejour.commentaire %}
+        <hr>
+        <p><strong>Commentaires :</strong></p>
+        <p class="text-muted">{{ sejour.commentaire }}</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Réservation associée -->
+<div class="card mb-4">
+    <div class="card-header bg-warning text-dark">
+        <i class="fas fa-calendar-check"></i> Réservation associée #{{ sejour.reservation.id }}
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3">
+                <p><strong>Date de réservation :</strong></p>
+                <p class="text-muted">{{ sejour.reservation.date_reservation|date:"d/m/Y" }}</p>
+            </div>
+            <div class="col-md-3">
+                <p><strong>Nombre de nuits :</strong></p>
+                <p class="text-muted">{{ sejour.reservation.nombre_nuits }}</p>
+            </div>
+            <div class="col-md-3">
+                <p><strong>Prix de base :</strong></p>
+                <p class="text-muted">{{ sejour.reservation.prix_total|floatformat:0 }} GNF</p>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'reservation_detail' sejour.reservation.id %}" class="btn btn-sm btn-warning">
+                    <i class="fas fa-eye"></i> Voir la réservation
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Services supplémentaires -->
+{% if services %}
+<div class="card mb-4">
+    <div class="card-header bg-secondary text-white">
+        <i class="fas fa-concierge-bell"></i> Services supplémentaires
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Quantité</th>
+                        <th>Prix unitaire</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for service in services %}
+                    <tr>
+                        <td>{{ service.service.nom_service }}</td>
+                        <td>{{ service.quantite }}</td>
+                        <td>{{ service.prix_unitaire|floatformat:0 }} GNF</td>
+                        <td><strong>{{ service.montant_total|floatformat:0 }} GNF</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Paiements -->
+<div class="card mb-4">
+    <div class="card-header bg-success text-white">
+        <i class="fas fa-money-bill-wave"></i> Paiements
+    </div>
+    <div class="card-body">
+        {% if paiements %}
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Montant</th>
+                        <th>Mode</th>
+                        <th>Référence</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for paiement in paiements %}
+                    <tr>
+                        <td>{{ paiement.date_paiement|date:"d/m/Y H:i" }}</td>
+                        <td><strong>{{ paiement.montant|floatformat:0 }} GNF</strong></td>
+                        <td>{{ paiement.get_mode_paiement_display }}</td>
+                        <td>{{ paiement.reference_transaction }}</td>
+                        <td>
+                            {% if paiement.statut == 'VALIDE' %}
+                                <span class="badge bg-success">Validé</span>
+                            {% elif paiement.statut == 'EN_ATTENTE' %}
+                                <span class="badge bg-warning">En attente</span>
+                            {% else %}
+                                <span class="badge bg-danger">Remboursé</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr class="table-active">
+                        <td colspan="4" class="text-end"><strong>Total payé :</strong></td>
+                        <td><strong>{{ sejour.montant_total_paye|floatformat:0 }} GNF</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i> Aucun paiement enregistré pour ce séjour.
+            {% if not sejour.date_checkout %}
+                <a href="{% url 'paiement_create' %}" class="btn btn-sm btn-warning ms-2">
+                    <i class="fas fa-plus"></i> Ajouter un paiement
+                </a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Résumé financier -->
+        <div class="alert alert-info mt-3">
+            <div class="row">
+                <div class="col-md-4">
+                    <strong>Montant total à payer :</strong><br>
+                    <span style="font-size: 1.2em;">{{ sejour.reservation.montant_total_avec_services|floatformat:0 }} GNF</span>
+                </div>
+                <div class="col-md-4">
+                    <strong>Déjà payé :</strong><br>
+                    <span style="font-size: 1.2em;">{{ sejour.montant_total_paye|floatformat:0 }} GNF</span>
+                </div>
+                <div class="col-md-4">
+                    <strong>Solde restant :</strong><br>
+                    <span style="font-size: 1.2em; {% if sejour.solde_restant > 0 %}color: red;{% else %}color: green;{% endif %}">
+                        {{ sejour.solde_restant|floatformat:0 }} GNF
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        {% if not sejour.date_checkout and sejour.solde_restant > 0 %}
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle"></i> 
+            <strong>Attention :</strong> Le solde doit être réglé avant le check-out.
+            <a href="{% url 'paiement_create' %}" class="btn btn-sm btn-danger ms-2">
+                <i class="fas fa-plus"></i> Ajouter un paiement
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Actions -->
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between">
+            <div>
+                <a href="{% url 'sejour_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Retour à la liste
+                </a>
+            </div>
+            <div>
+                {% if not sejour.date_checkout %}
+                    <a href="{% url 'paiement_create' %}" class="btn btn-warning">
+                        <i class="fas fa-money-bill-wave"></i> Ajouter un paiement
+                    </a>
+                    <a href="{% url 'sejour_checkout' sejour.id %}" class="btn btn-danger btn-lg">
+                        <i class="fas fa-sign-out-alt"></i> Effectuer le Check-out
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Créer un séjour - Gestion Hôtelière{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-door-open"></i> Créer un séjour (Check-in)</h1>
+    <p class="text-muted">Enregistrer l'arrivée d'un client</p>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <label for="id_reservation" class="form-label">Réservation *</label>
+                    {{ form.reservation }}
+                    <small class="text-muted">Sélectionnez la réservation confirmée du client</small>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="id_date_checkin" class="form-label">Date et heure de check-in *</label>
+                    {{ form.date_checkin }}
+                    <small class="text-muted">Date et heure d'arrivée du client</small>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="id_date_checkout" class="form-label">Date et heure de check-out</label>
+                    {{ form.date_checkout }}
+                    <small class="text-muted">Laissez vide si le client est encore présent</small>
+                </div>
+            </div>
+            
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> <strong>Note :</strong> 
+                Le check-in crée le séjour et change le statut de la chambre en "OCCUPÉE".
+                Le client doit avoir effectué son paiement avant le check-in.
+            </div>
+            
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{% url 'sejour_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Annuler
+                </a>
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i class="fas fa-check"></i> Enregistrer le check-in
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Style pour les champs du formulaire Django */
+    select, input[type="datetime-local"] {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+    
+    select:focus, input[type="datetime-local"]:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+</style>
+{% endblock %}

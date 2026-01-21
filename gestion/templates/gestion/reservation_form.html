@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}Créer une réservation - Gestion Hôtelière{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-calendar-plus"></i> Créer une réservation</h1>
+    <p class="text-muted">Enregistrer une nouvelle réservation</p>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="client" class="form-label">Client *</label>
+                    <select class="form-select" id="client" name="client" required>
+                        <option value="">-- Sélectionnez un client --</option>
+                        {% for client in clients %}
+                        <option value="{{ client.id }}">{{ client.nom_complet }} - {{ client.telephone }}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="text-muted">Si le client n'existe pas, <a href="{% url 'client_create' %}" target="_blank">créez-le d'abord</a></small>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="chambre" class="form-label">Chambre *</label>
+                    <select class="form-select" id="chambre" name="chambre" required>
+                        <option value="">-- Sélectionnez une chambre --</option>
+                        {% for chambre in chambres %}
+                        <option value="{{ chambre.id }}" data-prix="{{ chambre.prix_nuit }}">
+                            Chambre {{ chambre.numero_chambre }} - {{ chambre.get_type_chambre_display }} - {{ chambre.prix_nuit }} GNF/nuit
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <small class="text-muted">Seulement les chambres disponibles</small>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="date_debut_sejour" class="form-label">Date d'arrivée *</label>
+                    <input type="date" class="form-control" id="date_debut_sejour" name="date_debut_sejour" required>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="date_fin_sejour" class="form-label">Date de départ *</label>
+                    <input type="date" class="form-control" id="date_fin_sejour" name="date_fin_sejour" required>
+                </div>
+            </div>
+            
+            <!-- Affichage du prix calculé -->
+            <div class="alert alert-info mb-3">
+                <div class="row">
+                    <div class="col-md-4">
+                        <strong>Nombre de nuits : </strong><span id="nombre_nuits">0</span>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Prix par nuit : </strong><span id="prix_nuit">0</span> GNF
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Prix total : </strong><span id="prix_total" style="font-size: 1.2em; color: #667eea;">0</span> GNF
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="nombre_personnes" class="form-label">Nombre de personnes *</label>
+                    <input type="number" class="form-control" id="nombre_personnes" name="nombre_personnes" min="1" value="1" required>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="statut" class="form-label">Statut *</label>
+                    <select class="form-select" id="statut" name="statut" required>
+                        <option value="CONFIRMEE" selected>Confirmée</option>
+                        <option value="EN_ATTENTE">En attente</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="commentaire" class="form-label">Commentaire / Demandes spéciales</label>
+                <textarea class="form-control" id="commentaire" name="commentaire" rows="3"></textarea>
+            </div>
+            
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Annuler
+                </a>
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i class="fas fa-save"></i> Créer la réservation
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Calcul automatique du prix
+document.addEventListener('DOMContentLoaded', function() {
+    const chambreSelect = document.getElementById('chambre');
+    const dateDebut = document.getElementById('date_debut_sejour');
+    const dateFin = document.getElementById('date_fin_sejour');
+    const nombreNuitsSpan = document.getElementById('nombre_nuits');
+    const prixNuitSpan = document.getElementById('prix_nuit');
+    const prixTotalSpan = document.getElementById('prix_total');
+    
+    function calculerPrix() {
+        const chambreOption = chambreSelect.options[chambreSelect.selectedIndex];
+        const prixNuitText = chambreOption.getAttribute('data-prix');
+        const prixNuit = parseFloat(prixNuitText);
+        
+        const debut = new Date(dateDebut.value);
+        const fin = new Date(dateFin.value);
+        
+        if (!isNaN(prixNuit) && dateDebut.value && dateFin.value) {
+            const diffTime = fin - debut;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays > 0) {
+                const prixTotal = prixNuit * diffDays;
+                
+                nombreNuitsSpan.textContent = diffDays;
+                prixNuitSpan.textContent = prixNuit.toLocaleString('fr-FR');
+                prixTotalSpan.textContent = prixTotal.toLocaleString('fr-FR');
+            } else {
+                nombreNuitsSpan.textContent = '0';
+                prixTotalSpan.textContent = '0';
+            }
+        } else {
+            nombreNuitsSpan.textContent = '0';
+            prixNuitSpan.textContent = '0';
+            prixTotalSpan.textContent = '0';
+        }
+    }
+    
+    chambreSelect.addEventListener('change', calculerPrix);
+    dateDebut.addEventListener('change', calculerPrix);
+    dateFin.addEventListener('change', calculerPrix);
+});
+</script>
+{% endblock %}

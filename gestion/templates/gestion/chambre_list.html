@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}Liste des chambres - Gestion Hôtelière{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1><i class="fas fa-bed"></i> Liste des chambres</h1>
+        <p class="text-muted">Gestion de toutes les chambres de l'hôtel</p>
+    </div>
+    <!-- Bouton visible seulement pour les admins -->
+    {% if user.is_superuser %}
+    <a href="{% url 'chambre_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Nouvelle chambre
+    </a>
+    {% endif %}
+</div>
+
+<!-- Filtres -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Type de chambre</label>
+                <select name="type" class="form-control">
+                    <option value="">Tous les types</option>
+                    <option value="SIMPLE" {% if request.GET.type == 'SIMPLE' %}selected{% endif %}>Simple</option>
+                    <option value="DOUBLE" {% if request.GET.type == 'DOUBLE' %}selected{% endif %}>Double</option>
+                    <option value="SUITE" {% if request.GET.type == 'SUITE' %}selected{% endif %}>Suite</option>
+                    <option value="DELUXE" {% if request.GET.type == 'DELUXE' %}selected{% endif %}>Deluxe</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Statut</label>
+                <select name="statut" class="form-control">
+                    <option value="">Tous les statuts</option>
+                    <option value="DISPONIBLE" {% if request.GET.statut == 'DISPONIBLE' %}selected{% endif %}>Disponible</option>
+                    <option value="OCCUPEE" {% if request.GET.statut == 'OCCUPEE' %}selected{% endif %}>Occupée</option>
+                    <option value="MAINTENANCE" {% if request.GET.statut == 'MAINTENANCE' %}selected{% endif %}>En maintenance</option>
+                    <option value="HORS_SERVICE" {% if request.GET.statut == 'HORS_SERVICE' %}selected{% endif %}>Hors service</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter"></i> Filtrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Statistiques rapides -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-primary">{{ total_chambres }}</h3>
+                <p class="text-muted mb-0">Total chambres</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-success">{{ chambres_disponibles }}</h3>
+                <p class="text-muted mb-0">Chambres disponibles</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Liste des chambres -->
+<div class="row g-4">
+    {% if chambres %}
+        {% for chambre in chambres %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <strong><i class="fas fa-door-open"></i> Chambre {{ chambre.numero_chambre }}</strong>
+                    {% if chambre.statut == 'DISPONIBLE' %}
+                        <span class="badge bg-success">Disponible</span>
+                    {% elif chambre.statut == 'OCCUPEE' %}
+                        <span class="badge bg-danger">Occupée</span>
+                    {% elif chambre.statut == 'MAINTENANCE' %}
+                        <span class="badge bg-warning">Maintenance</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Hors service</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ chambre.get_type_chambre_display }}</h5>
+                    <div class="mb-3">
+                        <p class="mb-2">
+                            <i class="fas fa-money-bill-wave text-success"></i> 
+                            <strong>{{ chambre.prix_nuit|floatformat:0 }} GNF</strong> / nuit
+                        </p>
+                        <p class="mb-2">
+                            <i class="fas fa-bed text-info"></i> {{ chambre.nombre_lits }} lit(s)
+                        </p>
+                        <p class="mb-2">
+                            <i class="fas fa-ruler-combined text-warning"></i> {{ chambre.superficie }} m²
+                        </p>
+                        <p class="mb-2">
+                            <i class="fas fa-building text-secondary"></i> Étage {{ chambre.etage }}
+                        </p>
+                    </div>
+                    {% if chambre.description %}
+                    <p class="text-muted small">{{ chambre.description|truncatewords:15 }}</p>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'chambre_detail' chambre.id %}" class="btn btn-sm btn-info">
+                            <i class="fas fa-eye"></i> Voir
+                        </a>
+                        <!-- Bouton modifier visible SEULEMENT pour les admins -->
+                        {% if user.is_superuser %}
+                        <a href="{% url 'chambre_update' chambre.id %}" class="btn btn-sm btn-warning">
+                            <i class="fas fa-edit"></i> Modifier
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-bed fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Aucune chambre trouvée</p>
+                    {% if user.is_superuser %}
+                    <a href="{% url 'chambre_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Créer une chambre
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

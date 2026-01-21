@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+
+{% block title %}Tableau de bord - Gestion Hôtelière{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-tachometer-alt"></i> Tableau de bord</h1>
+    <p class="text-muted">Bienvenue {{ user.username }} !</p>
+</div>
+
+<!-- Actions rapides pour tous les utilisateurs -->
+<div class="row g-4 mb-4">
+    {% if user_permissions.can_add_client %}
+    <div class="col-md-4">
+        <div class="card text-center" style="border: 3px solid #667eea;">
+            <div class="card-body py-5">
+                <i class="fas fa-user-plus fa-4x mb-3" style="color: #667eea;"></i>
+                <h3>Ajouter un client</h3>
+                <p class="text-muted">Enregistrer un nouveau client</p>
+                <a href="{% url 'client_create' %}" class="btn btn-lg btn-primary">
+                    <i class="fas fa-plus"></i> Nouveau client
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if user_permissions.can_add_reservation %}
+    <div class="col-md-4">
+        <div class="card text-center" style="border: 3px solid #11998e;">
+            <div class="card-body py-5">
+                <i class="fas fa-calendar-plus fa-4x mb-3" style="color: #11998e;"></i>
+                <h3>Faire une réservation</h3>
+                <p class="text-muted">Créer une réservation</p>
+                <a href="{% url 'reservation_create' %}" class="btn btn-lg btn-success">
+                    <i class="fas fa-calendar-plus"></i> Nouvelle réservation
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if user_permissions.can_add_paiement %}
+    <div class="col-md-4">
+        <div class="card text-center" style="border: 3px solid #f5576c;">
+            <div class="card-body py-5">
+                <i class="fas fa-money-bill-wave fa-4x mb-3" style="color: #f5576c;"></i>
+                <h3>Encaisser un paiement</h3>
+                <p class="text-muted">Enregistrer un paiement</p>
+                <a href="{% url 'paiement_create' %}" class="btn btn-lg btn-danger">
+                    <i class="fas fa-money-bill-wave"></i> Nouveau paiement
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Statistiques principales -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <i class="fas fa-users"></i>
+            </div>
+            <h3>{{ total_clients }}</h3>
+            <p>Total Clients</p>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="icon" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <h3>{{ total_reservations }}</h3>
+            <p>Total Réservations</p>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3>{{ reservations_confirmees }}</h3>
+            <p>Réservations Confirmées</p>
+        </div>
+    </div>
+    
+    <!-- Revenus total : SEULEMENT pour les admins -->
+    {% if is_admin %}
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <i class="fas fa-money-bill-wave"></i>
+            </div>
+            <h3>{{ revenus_total|floatformat:0 }} GNF</h3>
+            <p>Revenus Total</p>
+        </div>
+    </div>
+    {% else %}
+    <!-- Pour réceptionnistes : Afficher les chambres disponibles à la place -->
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <i class="fas fa-bed"></i>
+            </div>
+            <h3>{{ chambres_disponibles }}</h3>
+            <p>Chambres Disponibles</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Statistiques opérationnelles (pour tous) -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                <i class="fas fa-door-open"></i>
+            </div>
+            <h3>{{ sejours_actifs }}</h3>
+            <p>Séjours actifs</p>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="icon" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);">
+                <i class="fas fa-sign-in-alt"></i>
+            </div>
+            <h3>{{ reservations_aujourdhui }}</h3>
+            <p>Arrivées du jour</p>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="icon" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+            <h3>{{ departs_aujourdhui }}</h3>
+            <p>Départs du jour</p>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="icon" style="background: linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%);">
+                <i class="fas fa-door-closed"></i>
+            </div>
+            <h3>{{ chambres_occupees }}</h3>
+            <p>Chambres Occupées</p>
+        </div>
+    </div>
+</div>
+
+<!-- Tableaux de statistiques : SEULEMENT pour les admins -->
+{% if is_admin %}
+<div class="row g-4 mb-4">
+    <!-- Chambres par type -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-bed"></i> Chambres par type
+            </div>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Type de chambre</th>
+                            <th class="text-end">Nombre</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for type in chambres_par_type %}
+                        <tr>
+                            <td>{{ type.type_chambre }}</td>
+                            <td class="text-end">
+                                <span class="badge bg-primary">{{ type.count }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Réservations par mois -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-chart-line"></i> Réservations par mois
+            </div>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Mois</th>
+                            <th class="text-end">Réservations</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in reservations_par_mois %}
+                        <tr>
+                            <td>{{ item.mois|date:"F Y" }}</td>
+                            <td class="text-end">
+                                <span class="badge bg-success">{{ item.count }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Réservations récentes (pour tous les utilisateurs) -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-calendar-alt"></i> Réservations récentes</span>
+        <a href="{% url 'reservation_list' %}" class="btn btn-sm btn-primary">
+            <i class="fas fa-list"></i> Voir toutes
+        </a>
+    </div>
+    <div class="card-body">
+        {% if reservations_recentes %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>N°</th>
+                        <th>Client</th>
+                        <th>Chambre</th>
+                        <th>Arrivée</th>
+                        <th>Départ</th>
+                        <th>Montant</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reservation in reservations_recentes %}
+                    <tr>
+                        <td><strong>#{{ reservation.id }}</strong></td>
+                        <td><i class="fas fa-user"></i> {{ reservation.client.nom_complet }}</td>
+                        <td><i class="fas fa-bed"></i> {{ reservation.chambre.numero_chambre }}</td>
+                        <td>{{ reservation.date_debut_sejour|date:"d/m/Y" }}</td>
+                        <td>{{ reservation.date_fin_sejour|date:"d/m/Y" }}</td>
+                        <td>{{ reservation.prix_total|floatformat:0 }} GNF</td>
+                        <td>
+                            {% if reservation.statut == 'EN_ATTENTE' %}
+                                <span class="badge bg-warning">En attente</span>
+                            {% elif reservation.statut == 'CONFIRMEE' %}
+                                <span class="badge bg-success">Confirmée</span>
+                            {% elif reservation.statut == 'ANNULEE' %}
+                                <span class="badge bg-danger">Annulée</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Terminée</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'reservation_detail' reservation.id %}" class="btn btn-sm btn-info" title="Voir">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            {% if reservation.statut == 'CONFIRMEE' %}
+                                {% if not reservation.sejour %}
+                                    <a href="{% url 'sejour_checkin' reservation.id %}" class="btn btn-sm btn-success" title="Check-in">
+                                        <i class="fas fa-sign-in-alt"></i>
+                                    </a>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-4">
+            <i class="fas fa-inbox fa-3x mb-3"></i>
+            <p>Aucune réservation récente</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+
+{% block title %}Rapports - Gestion Hôtelière{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-chart-bar"></i> Rapports et statistiques</h1>
+    <p class="text-muted">Vue d'ensemble des performances de l'hôtel</p>
+</div>
+
+<!-- Statistiques générales -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <i class="fas fa-users"></i>
+            </div>
+            <h3>{{ total_clients }}</h3>
+            <p>Total Clients</p>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="icon" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <h3>{{ total_reservations }}</h3>
+            <p>Total Réservations</p>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3>{{ reservations_confirmees }}</h3>
+            <p>Réservations Confirmées</p>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <i class="fas fa-money-bill-wave"></i>
+            </div>
+            <h3>{{ revenus_total|floatformat:0 }} GNF</h3>
+            <p>Revenus Total</p>
+        </div>
+    </div>
+</div>
+
+<!-- Chambres par type -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-bed"></i> Chambres par type
+            </div>
+            <div class="card-body">
+                {% if chambres_par_type %}
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Type de chambre</th>
+                            <th class="text-end">Nombre</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in chambres_par_type %}
+                        <tr>
+                            <td>
+                                {% if item.type_chambre == 'SIMPLE' %}
+                                    Simple
+                                {% elif item.type_chambre == 'DOUBLE' %}
+                                    Double
+                                {% elif item.type_chambre == 'SUITE' %}
+                                    Suite
+                                {% else %}
+                                    Deluxe
+                                {% endif %}
+                            </td>
+                            <td class="text-end"><span class="badge bg-primary">{{ item.count }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="text-muted text-center">Aucune donnée disponible</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-chart-line"></i> Réservations par mois
+            </div>
+            <div class="card-body">
+                {% if reservations_par_mois %}
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Mois</th>
+                            <th class="text-end">Réservations</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in reservations_par_mois %}
+                        <tr>
+                            <td>{{ item.mois }}</td>
+                            <td class="text-end"><span class="badge bg-success">{{ item.count }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="text-muted text-center">Aucune donnée disponible</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Informations détaillées -->
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-info-circle"></i> Taux d'occupation
+            </div>
+            <div class="card-body text-center">
+                <h2 class="text-primary">20%</h2>
+                <p class="text-muted mb-0">Chambres actuellement occupées</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <i class="fas fa-percentage"></i> Taux de réservation
+            </div>
+            <div class="card-body text-center">
+                <h2 class="text-success">
+                    {% if total_reservations > 0 %}
+                        {% widthratio reservations_confirmees total_reservations 100 as taux_res %}
+                        {{ taux_res }}%
+                    {% else %}
+                        0%
+                    {% endif %}
+                </h2>
+                <p class="text-muted mb-0">Réservations confirmées</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <i class="fas fa-dollar-sign"></i> Revenu moyen
+            </div>
+            <div class="card-body text-center">
+                <h2 class="text-info">
+                    {% if reservations_confirmees > 0 %}
+                        {% widthratio revenus_total reservations_confirmees 1 as revenu_moyen %}
+                        {{ revenu_moyen|floatformat:0 }} GNF
+                    {% else %}
+                        0 GNF
+                    {% endif %}
+                </h2>
+                <p class="text-muted mb-0">Par réservation</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions -->
+<div class="card mt-4">
+    <div class="card-body text-center">
+        <h5 class="mb-3">Actions rapides</h5>
+        <a href="{% url 'dashboard' %}" class="btn btn-primary me-2">
+            <i class="fas fa-tachometer-alt"></i> Tableau de bord
+        </a>
+        <a href="{% url 'reservation_list' %}" class="btn btn-success me-2">
+            <i class="fas fa-calendar-check"></i> Voir les réservations
+        </a>
+        <a href="/admin/" class="btn btn-info">
+            <i class="fas fa-cog"></i> Administration
+        </a>
+    </div>
+</div>
+
+{% endblock %}

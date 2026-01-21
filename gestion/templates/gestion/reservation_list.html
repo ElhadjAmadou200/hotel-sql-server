@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block title %}Liste des réservations - Gestion Hôtelière{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1><i class="fas fa-calendar-check"></i> Liste des réservations</h1>
+        <p class="text-muted">Gestion de toutes les réservations</p>
+    </div>
+    <a href="{% url 'reservation_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Nouvelle réservation
+    </a>
+</div>
+
+<!-- Filtres -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Rechercher</label>
+                <input type="text" name="search" class="form-control" placeholder="Client, chambre..." value="{{ request.GET.search }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Statut</label>
+                <select name="statut" class="form-control">
+                    <option value="">Tous</option>
+                    <option value="EN_ATTENTE" {% if request.GET.statut == 'EN_ATTENTE' %}selected{% endif %}>En attente</option>
+                    <option value="CONFIRMEE" {% if request.GET.statut == 'CONFIRMEE' %}selected{% endif %}>Confirmée</option>
+                    <option value="ANNULEE" {% if request.GET.statut == 'ANNULEE' %}selected{% endif %}>Annulée</option>
+                    <option value="TERMINEE" {% if request.GET.statut == 'TERMINEE' %}selected{% endif %}>Terminée</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Date début</label>
+                <input type="date" name="date_debut" class="form-control" value="{{ request.GET.date_debut }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Date fin</label>
+                <input type="date" name="date_fin" class="form-control" value="{{ request.GET.date_fin }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search"></i> Rechercher
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Statistiques -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-primary">{{ reservations.count }}</h3>
+                <p class="text-muted mb-0">Total réservations</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Liste des réservations -->
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-list"></i> Toutes les réservations
+    </div>
+    <div class="card-body">
+        {% if reservations %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>N°</th>
+                        <th>Client</th>
+                        <th>Chambre</th>
+                        <th>Date réservation</th>
+                        <th>Arrivée</th>
+                        <th>Départ</th>
+                        <th>Nuits</th>
+                        <th>Adultes</th>
+                        <th>Enfants</th>
+                        <th>Prix total</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reservation in reservations %}
+                    <tr>
+                        <td><strong>#{{ reservation.id }}</strong></td>
+                        <td>
+                            <i class="fas fa-user"></i> {{ reservation.client.nom_complet }}
+                        </td>
+                        <td>
+                            <i class="fas fa-bed"></i> Chambre {{ reservation.chambre.numero_chambre }}
+                        </td>
+                        <td>{{ reservation.date_reservation|date:"d/m/Y H:i" }}</td>
+                        <td>{{ reservation.date_debut_sejour|date:"d/m/Y" }}</td>
+                        <td>{{ reservation.date_fin_sejour|date:"d/m/Y" }}</td>
+                        <td><span class="badge bg-info">{{ reservation.nombre_nuits }}</span></td>
+                        <td>{{ reservation.nombre_adultes }}</td>
+                        <td>{{ reservation.nombre_enfants }}</td>
+                        <td><strong>{{ reservation.prix_total|floatformat:0 }} GNF</strong></td>
+                        <td>
+                            {% if reservation.statut == 'EN_ATTENTE' %}
+                                <span class="badge bg-warning">En attente</span>
+                            {% elif reservation.statut == 'CONFIRMEE' %}
+                                <span class="badge bg-success">Confirmée</span>
+                            {% elif reservation.statut == 'ANNULEE' %}
+                                <span class="badge bg-danger">Annulée</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Terminée</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'reservation_detail' reservation.id %}" class="btn btn-sm btn-info btn-action" title="Voir">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            
+                            {% if reservation.statut == 'CONFIRMEE' %}
+                                {% if not reservation.sejour %}
+                                    <a href="{% url 'sejour_checkin' reservation.id %}" class="btn btn-sm btn-success btn-action" title="Check-in">
+                                        <i class="fas fa-sign-in-alt"></i>
+                                    </a>
+                                {% else %}
+                                    <span class="badge bg-info" title="Séjour en cours">
+                                        <i class="fas fa-door-open"></i> En cours
+                                    </span>
+                                {% endif %}
+                            {% endif %}
+                            
+                            <!-- Bouton Annuler : visible pour EN_ATTENTE et CONFIRMEE -->
+                            {% if reservation.statut == 'EN_ATTENTE' or reservation.statut == 'CONFIRMEE' %}
+                                <a href="{% url 'reservation_cancel' reservation.id %}" 
+                                   class="btn btn-sm btn-danger btn-action" 
+                                   title="Annuler">
+                                    <i class="fas fa-times"></i>
+                                </a>
+                            {% endif %}
+                            
+                            <!-- Bouton Modifier visible seulement si pas annulée et pas terminée -->
+                            {% if reservation.statut != 'ANNULEE' and reservation.statut != 'TERMINEE' %}
+                            <a href="{% url 'reservation_update' reservation.id %}" class="btn btn-sm btn-warning btn-action" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-5">
+            <i class="fas fa-calendar-times fa-3x mb-3"></i>
+            <p>Aucune réservation trouvée</p>
+            <a href="{% url 'reservation_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Créer une réservation
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Légende -->
+<div class="card mt-4">
+    <div class="card-body">
+        <h6>Légende des statuts :</h6>
+        <span class="badge bg-warning me-2">En attente</span> Réservation en cours de validation
+        <span class="badge bg-success me-2 ms-3">Confirmée</span> Réservation confirmée et payée
+        <span class="badge bg-danger me-2 ms-3">Annulée</span> Réservation annulée
+        <span class="badge bg-secondary me-2 ms-3">Terminée</span> Séjour terminé
+        <span class="badge bg-info me-2 ms-3"><i class="fas fa-door-open"></i> En cours</span> Check-in effectué
+    </div>
+</div>
+
+{% endblock %}

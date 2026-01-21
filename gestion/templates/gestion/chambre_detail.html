@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block title %}Chambre {{ chambre.numero_chambre }} - Gestion Hôtelière{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1><i class="fas fa-bed"></i> Chambre {{ chambre.numero_chambre }}</h1>
+        <p class="text-muted">Détails de la chambre</p>
+    </div>
+    <a href="{% url 'chambre_list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Retour à la liste
+    </a>
+</div>
+
+<!-- Informations principales -->
+<div class="row g-4 mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <strong><i class="fas fa-info-circle"></i> Informations de la chambre</strong>
+                {% if chambre.statut == 'DISPONIBLE' %}
+                    <span class="badge bg-success">Disponible</span>
+                {% elif chambre.statut == 'OCCUPEE' %}
+                    <span class="badge bg-danger">Occupée</span>
+                {% elif chambre.statut == 'MAINTENANCE' %}
+                    <span class="badge bg-warning">Maintenance</span>
+                {% else %}
+                    <span class="badge bg-secondary">Hors service</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p><strong>Numéro de chambre :</strong><br/>{{ chambre.numero_chambre }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Type :</strong><br/>{{ chambre.get_type_chambre_display }}</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p><strong>Prix par nuit :</strong><br/>
+                            <span class="text-success" style="font-size: 24px;">{{ chambre.prix_nuit|floatformat:0 }} GNF</span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Nombre de lits :</strong><br/>{{ chambre.nombre_lits }} lit(s)</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p><strong>Superficie :</strong><br/>{{ chambre.superficie }} m²</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Étage :</strong><br/>{{ chambre.etage }}</p>
+                    </div>
+                </div>
+                
+                {% if chambre.description %}
+                <div class="row">
+                    <div class="col-12">
+                        <p><strong>Description :</strong><br/>{{ chambre.description }}</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="row">
+                    <div class="col-12">
+                        <p><strong>Date de création :</strong><br/>{{ chambre.date_creation|date:"d/m/Y H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-cogs"></i> Actions
+            </div>
+            <div class="card-body">
+                <!-- Bouton Modifier visible SEULEMENT pour les admins -->
+                {% if user.is_superuser %}
+                <a href="{% url 'chambre_update' chambre.id %}" class="btn btn-warning w-100 mb-2">
+                    <i class="fas fa-edit"></i> Modifier la chambre
+                </a>
+                {% endif %}
+                
+                {% if chambre.statut == 'DISPONIBLE' %}
+                <a href="{% url 'reservation_create' %}?chambre={{ chambre.id }}" class="btn btn-primary w-100 mb-2">
+                    <i class="fas fa-calendar-plus"></i> Créer une réservation
+                </a>
+                {% endif %}
+                
+                <a href="{% url 'chambre_list' %}" class="btn btn-secondary w-100">
+                    <i class="fas fa-list"></i> Retour à la liste
+                </a>
+            </div>
+        </div>
+        
+        <!-- Statistiques de la chambre -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <i class="fas fa-chart-bar"></i> Statistiques
+            </div>
+            <div class="card-body">
+                <p><strong>Réservations totales :</strong><br/>{{ reservations_count }}</p>
+                <p><strong>Séjours totaux :</strong><br/>{{ sejours_count }}</p>
+                <p><strong>Revenus générés :</strong><br/>
+                    <span class="text-success">{{ revenus_total|floatformat:0 }} GNF</span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Réservations de cette chambre -->
+{% if reservations_recentes %}
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-calendar-check"></i> Réservations récentes
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>N°</th>
+                        <th>Client</th>
+                        <th>Date réservation</th>
+                        <th>Arrivée</th>
+                        <th>Départ</th>
+                        <th>Nuits</th>
+                        <th>Prix</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reservation in reservations_recentes %}
+                    <tr>
+                        <td><strong>#{{ reservation.id }}</strong></td>
+                        <td>{{ reservation.client.nom_complet }}</td>
+                        <td>{{ reservation.date_reservation|date:"d/m/Y" }}</td>
+                        <td>{{ reservation.date_debut_sejour|date:"d/m/Y" }}</td>
+                        <td>{{ reservation.date_fin_sejour|date:"d/m/Y" }}</td>
+                        <td>{{ reservation.nombre_nuits }}</td>
+                        <td>{{ reservation.prix_total|floatformat:0 }} GNF</td>
+                        <td>
+                            {% if reservation.statut == 'EN_ATTENTE' %}
+                                <span class="badge bg-warning">En attente</span>
+                            {% elif reservation.statut == 'CONFIRMEE' %}
+                                <span class="badge bg-success">Confirmée</span>
+                            {% elif reservation.statut == 'ANNULEE' %}
+                                <span class="badge bg-danger">Annulée</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Terminée</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
